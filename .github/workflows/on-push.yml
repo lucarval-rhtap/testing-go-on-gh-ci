@@ -1,0 +1,32 @@
+name: on-push
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  build:
+    uses: lcarva/trusted-workflows/.github/workflows/builder-container-slsa3.yaml@main
+    permissions:
+      # Needed for signing the container image with GitHub OIDC Token
+      id-token: write
+      contents: read
+      # TODO: This may or may not be needed - depends on how attestation is created
+      attestations: write
+      packages: write
+    with:
+      git-url: ${{ github.repository }}
+      git-commit: ${{ github.sha }}
+      image-registry-username: ${{ vars.IMAGE_REGISTRY_USER }}
+      image-registry: ${{ vars.IMAGE_REGISTRY }}
+      image-repository: lucarval-rhtap/testing-go-on-gh-ci
+      image-tags: ${{ github.sha }} latest
+      container-files: ./docker/Dockerfile
+    secrets:
+      image-registry-password: ${{ secrets.IMAGE_REGISTRY_PASSWORD }}
+
